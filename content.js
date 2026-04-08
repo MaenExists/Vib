@@ -187,7 +187,9 @@ const trySkipAd = safeRun(() => {
 
 // Vib Bar
 const openVibBar = safeRun(() => {
-  if (isVibBarOpen || !vibEnabled || window !== window.top) return;
+  if (isVibBarOpen || !vibEnabled) return;
+  // Don't open in tiny iframes (likely trackers/ads)
+  if (window !== window.top && (window.innerWidth < 100 || window.innerHeight < 100)) return;
   isVibBarOpen = true;
   const viewport = { top: 0, bottom: window.innerHeight };
   
@@ -293,7 +295,8 @@ function closeVibBar() {
 }
 
 window.addEventListener('keydown', (e) => {
-  const isTrigger = (e.ctrlKey || e.metaKey) && e.key === ' ';
+  const isSpace = e.key === ' ' || e.code === 'Space';
+  const isTrigger = (e.ctrlKey || e.metaKey) && isSpace;
   if (isTrigger) { openVibBar(); e.preventDefault(); e.stopPropagation(); return; }
   
   if (e.key === 'Escape') {
