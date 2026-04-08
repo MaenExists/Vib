@@ -21,7 +21,7 @@
     }
     .container {
       width: 100%;
-      max-width: 600px;
+      max-width: 700px;
     }
     h1 {
       font-size: 32px;
@@ -32,10 +32,12 @@
     .section {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--vib-border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 24px;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
     }
+    h2 { font-size: 18px; margin-top: 0; margin-bottom: 20px; color: var(--vib-accent); opacity: 0.9; }
+    
     .setting-item {
       display: flex;
       justify-content: space-between;
@@ -43,7 +45,7 @@
       margin-bottom: 20px;
     }
     .setting-item:last-child { margin-bottom: 0; }
-    .setting-info h3 { margin: 0; font-size: 16px; font-weight: 500; }
+    .setting-info h3 { margin: 0; font-size: 15px; font-weight: 500; }
     .setting-info p { margin: 4px 0 0; font-size: 13px; color: var(--vib-text-dim); }
     
     /* Toggle Switch */
@@ -74,13 +76,72 @@
     input:checked + .slider { background-color: var(--vib-accent); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    .save-status {
+    /* Shortcut Management */
+    .shortcut-list { margin-top: 20px; }
+    .shortcut-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr auto;
+      gap: 12px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border: 1px solid transparent;
+    }
+    .shortcut-row:hover { border-color: rgba(255, 255, 255, 0.05); }
+    
+    .shortcut-input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: white;
       font-size: 13px;
+      outline: none;
+    }
+    .shortcut-input:focus { border-color: var(--vib-accent); }
+
+    .btn-delete {
+      background: rgba(255, 69, 58, 0.1);
+      color: #ff453a;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    .btn-delete:hover { background: rgba(255, 69, 58, 0.2); }
+
+    .btn-add {
+      width: 100%;
+      background: rgba(0, 255, 136, 0.1);
       color: var(--vib-accent);
+      border: 1px dashed var(--vib-accent);
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-add:hover { background: rgba(0, 255, 136, 0.15); border-style: solid; }
+
+    .save-status {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--vib-accent);
+      color: #000;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
       opacity: 0;
-      transition: opacity 0.3s;
-      margin-top: 20px;
-      text-align: center;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
     }
   </style>
 </head>
@@ -89,10 +150,11 @@
     <h1>Vib Settings</h1>
     
     <div class="section">
+      <h2>Preferences</h2>
       <div class="setting-item">
         <div class="setting-info">
           <h3>Universal Scrolling</h3>
-          <p>Enable smooth momentum scrolling on all websites and elements.</p>
+          <p>Smooth momentum scrolling across all websites.</p>
         </div>
         <label class="switch">
           <input type="checkbox" id="scrollEnabled" checked>
@@ -102,19 +164,8 @@
       
       <div class="setting-item">
         <div class="setting-info">
-          <h3>Vib Home (New Tab)</h3>
-          <p>Use the minimalist glassmorphic search bar for new tabs.</p>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="newTabEnabled" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
           <h3>Auto-Skip YouTube Ads</h3>
-          <p>Automatically click skip buttons on video platforms.</p>
+          <p>Instantly bypass video advertisements.</p>
         </div>
         <label class="switch">
           <input type="checkbox" id="autoSkipEnabled" checked>
@@ -124,19 +175,17 @@
     </div>
 
     <div class="section">
-      <div class="setting-item">
-        <div class="setting-info">
-          <h3>Deep Indexing</h3>
-          <p>Index more elements for Universal Search (may affect performance).</p>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="deepIndexing">
-          <span class="slider"></span>
-        </label>
+      <h2>Quick Jump Assets (New Tab)</h2>
+      <p style="font-size: 13px; color: var(--vib-text-dim); margin-top: -10px; margin-bottom: 20px;">
+        Assign up to 9 shortcuts. Access them using number keys (1-9) on the home page.
+      </p>
+      <div id="shortcut-list" class="shortcut-list">
+        <!-- Shortcuts injected here -->
       </div>
+      <button class="btn-add" id="add-shortcut-btn">+ Add New Asset</button>
     </div>
 
-    <div id="status" class="save-status">Settings saved successfully.</div>
+    <div id="status" class="save-status">Settings saved</div>
   </div>
   <script src="options.js"></script>
 </body>

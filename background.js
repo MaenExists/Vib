@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         break;
       case 'newWindow': chrome.windows.create({ incognito: !!request.incognito }); break;
       case 'openHistory': chrome.tabs.create({ url: 'chrome://history' }); break;
-      case 'openSettings': chrome.tabs.create({ url: 'chrome://settings' }); break;
+      case 'openSettings': chrome.runtime.openOptionsPage(); break;
     }
   } catch (e) {
     console.error('Vib Background Error:', e);

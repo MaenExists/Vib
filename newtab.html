@@ -23,8 +23,37 @@
     .overlay-vignette {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%);
+      background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
       z-index: 0;
+    }
+
+    .top-bar {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      z-index: 10;
+    }
+
+    .settings-trigger {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .settings-trigger:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--vib-accent);
+      transform: rotate(90deg);
     }
 
     .vib-hero {
@@ -32,66 +61,69 @@
       text-align: center;
       z-index: 1;
       width: 100%;
-      max-width: 700px;
-      padding: 40px;
+      max-width: 800px;
+      padding: 60px;
       background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 32px;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 48px;
+      box-shadow: 0 50px 120px rgba(0,0,0,0.6);
     }
 
     .vib-time {
-      font-size: 80px;
+      font-size: 100px;
       font-weight: 200;
-      margin-bottom: 10px;
-      letter-spacing: -2px;
-      opacity: 0.9;
+      margin-bottom: 0px;
+      letter-spacing: -4px;
+      opacity: 0.95;
     }
 
     .vib-date {
-      font-size: 18px;
-      font-weight: 400;
-      margin-bottom: 40px;
-      opacity: 0.6;
-      letter-spacing: 2px;
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 50px;
+      opacity: 0.4;
+      letter-spacing: 4px;
       text-transform: uppercase;
     }
 
     .vib-newtab-input {
       width: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      padding: 20px 28px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 24px 36px;
       color: white;
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       outline: none;
-      transition: all 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
       box-sizing: border-box;
+      text-align: center;
     }
 
     .vib-newtab-input:focus {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.1);
       border-color: var(--vib-accent);
-      box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+      box-shadow: 0 0 40px rgba(0, 255, 136, 0.2);
     }
 
     .keyboard-assets {
-      margin-top: 40px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 15px;
+      margin-top: 50px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
     }
 
     .asset-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 15px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 16px 22px;
       border-radius: 16px;
+      min-width: 110px;
       text-align: center;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       cursor: pointer;
       text-decoration: none;
       color: inherit;
@@ -100,63 +132,55 @@
     .asset-card:hover, .asset-card.active {
       background: rgba(0, 255, 136, 0.1);
       border-color: var(--vib-accent);
-      transform: translateY(-5px);
+      transform: translateY(-6px);
     }
 
     .asset-key {
       display: block;
       font-size: 10px;
-      font-weight: 800;
+      font-weight: 900;
       color: var(--vib-accent);
       margin-bottom: 8px;
       opacity: 0.8;
-      text-transform: uppercase;
     }
 
     .asset-name {
       font-size: 14px;
       font-weight: 500;
+      opacity: 0.7;
     }
 
     .hint-bar {
       position: absolute;
       bottom: 30px;
-      font-size: 12px;
-      opacity: 0.4;
-      letter-spacing: 1px;
+      font-size: 11px;
+      opacity: 0.25;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
   </style>
 </head>
 <body>
   <div class="overlay-vignette"></div>
   
+  <div class="top-bar">
+    <div class="settings-trigger" id="open-settings-btn" title="Vib Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </div>
+  </div>
+
   <div class="vib-hero">
     <div id="clock" class="vib-time">00:00</div>
     <div id="date" class="vib-date">Monday, April 8</div>
     
-    <input type="text" class="vib-newtab-input" placeholder="Type to search or jump..." autofocus spellcheck="false">
+    <input type="text" class="vib-newtab-input" placeholder="Search or Jump..." autofocus spellcheck="false">
     
-    <div class="keyboard-assets">
-      <a href="https://github.com" class="asset-card" data-key="g">
-        <span class="asset-key">Alt + G</span>
-        <span class="asset-name">GitHub</span>
-      </a>
-      <a href="https://youtube.com" class="asset-card" data-key="y">
-        <span class="asset-key">Alt + Y</span>
-        <span class="asset-name">YouTube</span>
-      </a>
-      <a href="https://twitter.com" class="asset-card" data-key="t">
-        <span class="asset-key">Alt + T</span>
-        <span class="asset-name">Twitter</span>
-      </a>
-      <a href="https://gmail.com" class="asset-card" data-key="m">
-        <span class="asset-key">Alt + M</span>
-        <span class="asset-name">Mail</span>
-      </a>
+    <div class="keyboard-assets" id="assets-container">
+      <!-- Minimalist Assets Only -->
     </div>
   </div>
 
-  <div class="hint-bar">Press ? for guide • Type / for commands</div>
+  <div class="hint-bar">Number keys to jump • ? for guide</div>
 
   <script src="newtab.js"></script>
 </body>
