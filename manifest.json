@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Vib",
+  "version": "1.0.0",
+  "description": "Premium keyboard navigation with glassmorphic UI, high-precision smooth scrolling, and intelligent auto-skip features.",
+  "homepage_url": "https://github.com/maen/vib",
+  "icons": {
+    "128": "icon.svg"
+  },
+  "permissions": [
+    "tabs",
+    "history",
+    "storage",
+    "sessions"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.svg"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "vib-extension@maen.builds",
+      "strict_min_version": "109.0"
+    }
+  }
+}

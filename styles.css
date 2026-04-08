@@ -1,0 +1,171 @@
+/* Vib: Ultimate Glassmorphism UI */
+:root {
+  --vib-bg: rgba(18, 18, 18, 0.72);
+  --vib-accent: #00ff88;
+  --vib-border: rgba(255, 255, 255, 0.1);
+  --vib-text: #ffffff;
+  --vib-text-dim: #b0b0b0;
+}
+
+.vib-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2147483647;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+}
+
+/* Glassmorphism Vib Bar */
+.vib-bar-container {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 520px;
+  background: var(--vib-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--vib-border);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  padding: 6px;
+  pointer-events: auto;
+  opacity: 0;
+  animation: vib-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes vib-slide-up {
+  from { transform: translate(-50%, 30px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.vib-bar-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 17px;
+  padding: 14px 20px;
+  outline: none;
+  font-weight: 400;
+}
+
+.vib-bar-results {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+  scrollbar-width: none;
+}
+.vib-bar-results::-webkit-scrollbar { display: none; }
+
+.vib-res-item {
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: var(--vib-text-dim);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vib-res-item.selected {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--vib-accent);
+}
+
+.vib-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.vib-res-item.selected .vib-icon {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px var(--vib-accent));
+}
+
+.vib-res-item .type-tag {
+  margin-left: auto;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 6px;
+  opacity: 0.6;
+}
+
+/* Subtle Target Glow */
+.vib-target-glow {
+  outline: 3px solid var(--vib-accent) !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 30px rgba(0, 255, 136, 0.4) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  z-index: 2147483646 !important;
+}
+
+/* Guide Panel - Translucent & Centered */
+.vib-guide-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.vib-guide-panel {
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(35px);
+  border: 1px solid var(--vib-border);
+  border-radius: 24px;
+  padding: 45px;
+  width: 580px;
+  max-width: 90vw;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+  color: #fff;
+}
+
+.vib-guide-panel h2 {
+  color: var(--vib-accent);
+  margin-top: 0;
+  font-size: 30px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.vib-guide-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.vib-guide-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.vib-guide-item .key {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--vib-accent);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+/* Active Scroll Section Highlight */
+.vib-scroll-focus {
+  outline: 2px solid var(--vib-accent) !important;
+  outline-offset: -2px !important;
+  transition: outline 0.25s ease;
+  box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.1) !important;
+}
