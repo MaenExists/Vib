@@ -171,18 +171,43 @@ const openVibBar = safeRun(() => {
   vibInput = vibShadowRoot.querySelector('.vib-bar-input');
   vibInput.focus();
 
-  // Indexing
-  const selector = deepIndexing 
-    ? 'a, button, input, textarea, [role="button"], [role="link"], [role="textbox"], [contenteditable="true"], div[onclick]'
-    : 'a, button, input, textarea, [role="button"], [role="link"]';
-    
+  // Advanced Indexing for "All" Elements
+  const selector = `
+    a, button, input, textarea, select, [role="button"], [role="link"], [role="textbox"], 
+    [role="menuitem"], [role="tab"], [role="checkbox"], [contenteditable="true"], 
+    [onclick], [jsaction], [tabindex]:not([tabindex="-1"]), 
+    summary, details, .btn, .button, .clickable
+  `.trim();
+
   pageElements = Array.from(document.querySelectorAll(selector))
     .map(el => {
       const rect = el.getBoundingClientRect();
-      if (!(rect.width > 0 && rect.height > 0)) return null;
-      let text = (el.innerText || el.placeholder || el.value || el.ariaLabel || '').toLowerCase().trim();
+      // Only index elements that are likely visible or have some presence
+      if (rect.width === 0 && rect.height === 0) return null;
+
+      // Multi-attribute text extraction
+      let text = (
+        el.innerText || 
+        el.placeholder || 
+        el.value || 
+        el.getAttribute('aria-label') || 
+        el.getAttribute('title') || 
+        el.getAttribute('alt') || 
+        el.getAttribute('data-placeholder') ||
+        ''
+      ).toLowerCase().trim();
+
+      // Fallback for icons/images: check parents or specific attributes
+      if (!text && el.tagName === 'IMG') text = el.alt || el.title;
+      if (!text) {
+        // Try to find the closest text node
+        const firstText = Array.from(el.childNodes).find(n => n.nodeType === 3 && n.textContent.trim());
+        if (firstText) text = firstText.textContent.trim().toLowerCase();
+      }
+
       return text ? { el, text, type: 'page' } : null;
     }).filter(e => e);
+
 
   vibInput.oninput = (e) => handleSearch(e.target.value);
   vibInput.onkeydown = handleKeydown;
@@ -190,14 +215,27 @@ const openVibBar = safeRun(() => {
 });
 
 function handleSearch(query) {
-  query = query.toLowerCase();
+  query = query.toLowerCase().trim();
   const commands = [
     { text: 'new tab', action: 'newTab', type: 'cmd' },
+    { text: 'close tab', action: 'closeTab', type: 'cmd' },
+    { text: 'next tab', action: 'nextTab', type: 'cmd' },
+    { text: 'prev tab', action: 'prevTab', type: 'cmd' },
     { text: 'settings', action: 'openSettings', type: 'cmd' },
     { text: 'skip ad', action: 'skipAd', type: 'skip' }
   ].filter(c => !query || c.text.includes(query));
 
-  const matches = pageElements.filter(e => e.text.includes(query)).slice(0, 10);
+  // Better sorting: exact matches first, then starts with, then contains
+  const matches = pageElements.filter(e => e.text.includes(query))
+    .sort((a, b) => {
+      if (a.text === query) return -1;
+      if (b.text === query) return 1;
+      if (a.text.startsWith(query)) return -1;
+      if (b.text.startsWith(query)) return 1;
+      return a.text.length - b.text.length;
+    })
+    .slice(0, 15);
+    
   renderResults([...commands, ...matches]);
 }
 
@@ -236,7 +274,20 @@ function executeResult(res) {
   if (!res) return;
   if (res.action === 'skipAd') trySkipAd();
   else if (res.action) chrome.runtime.sendMessage(res);
-  else { res.el.click(); res.el.focus(); }
+  else {
+    const el = res.el;
+    // Dispatch comprehensive event sequence
+    const events = ['mousedown', 'focus', 'click', 'mouseup'];
+    events.forEach(type => {
+      const ev = new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      el.dispatchEvent(ev);
+    });
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable) el.focus();
+  }
   closeVibBar();
 }
 
