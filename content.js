@@ -27,50 +27,117 @@ const ICONS = {
 };
 
 // State Manager
-chrome.storage.local.get(['vibEnabled'], (result) => { vibEnabled = result.vibEnabled !== false; });
+let scrollEnabled = true;
+let autoSkipEnabled = true;
+let deepIndexing = false;
+
+function updateSettings(result) {
+  if (result.vibEnabled !== undefined) vibEnabled = result.vibEnabled;
+  if (result.scrollEnabled !== undefined) scrollEnabled = result.scrollEnabled;
+  if (result.autoSkipEnabled !== undefined) autoSkipEnabled = result.autoSkipEnabled;
+  if (result.deepIndexing !== undefined) deepIndexing = result.deepIndexing;
+}
+
+chrome.storage.local.get(['vibEnabled', 'scrollEnabled', 'autoSkipEnabled', 'deepIndexing'], updateSettings);
+
+chrome.storage.onChanged.addListener((changes) => {
+  const newValues = {};
+  for (let [key, { newValue }] of Object.entries(changes)) {
+    newValues[key] = newValue;
+  }
+  updateSettings(newValues);
+});
+
 chrome.runtime.onMessage.addListener((request) => { 
   if (request.action === 'stateChanged') vibEnabled = request.enabled;
   if (request.action === 'openVibBar') openVibBar();
 });
 
 // Run Auto-Skip on load
-window.addEventListener('load', () => { if (window.location.hostname.includes('youtube.com')) trySkipAd(); });
+window.addEventListener('load', () => { 
+  if (autoSkipEnabled && window.location.hostname.includes('youtube.com')) trySkipAd(); 
+});
 
 function safeRun(fn) {
   return function(...args) { try { return fn.apply(this, args); } catch (e) { console.error('Vib Error Protected:', e); } };
 }
 
-// High-Control Momentum Scrolling
+// Universal Scrolling Engine (High-Precision Momentum)
+const SCROLL_ACCEL = 40;
+const SCROLL_FRICTION = 0.82;
+let scrollVelocity = 0;
+let currentScrollTarget = null;
+let targetScrollY = 0;
+let currentScrollY = 0;
+
+function findBestScrollable(el) {
+  if (!el || el === document || el === document.body || el === document.documentElement) return window;
+  
+  const style = window.getComputedStyle(el);
+  const overflow = style.overflowY;
+  const isScrollable = (overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay') && el.scrollHeight > el.clientHeight + 5;
+  
+  if (isScrollable) return el;
+  return findBestScrollable(el.parentElement);
+}
+
 const scrollLoop = safeRun(() => {
-  if (!vibEnabled) return;
+  if (!vibEnabled || !scrollEnabled) return;
+  
   if (Math.abs(scrollVelocity) > 0.1) {
-    if (currentScrollIndex === -1) {
+    // Determine target (Window or Element)
+    let target = currentScrollIndex === -1 ? window : scrollableElements[currentScrollIndex];
+    if (!target) target = window;
+
+    if (target === window) {
       targetScrollY += scrollVelocity;
-      targetScrollY = Math.max(0, Math.min(targetScrollY, document.documentElement.scrollHeight - window.innerHeight));
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      targetScrollY = Math.max(0, Math.min(targetScrollY, maxScroll));
+      
+      const diff = targetScrollY - currentScrollY;
+      if (Math.abs(diff) > 0.1) {
+        currentScrollY += diff * 0.35;
+        window.scrollTo(window.scrollX, currentScrollY);
+      }
     } else {
-      const el = scrollableElements[currentScrollIndex];
-      if (el) el.scrollTop += scrollVelocity;
+      target.scrollTop += scrollVelocity;
     }
+    
     scrollVelocity *= SCROLL_FRICTION;
-  }
-  if (currentScrollIndex === -1) {
-    const diff = targetScrollY - currentScrollY;
-    if (Math.abs(diff) > 0.5) {
-      currentScrollY += diff * 0.45;
-      window.scrollTo(window.scrollX, currentScrollY);
-      requestAnimationFrame(scrollLoop);
-    } else if (Math.abs(scrollVelocity) > 0.1) requestAnimationFrame(scrollLoop);
-    else { scrollVelocity = 0; window._vibScrolling = false; }
+    requestAnimationFrame(scrollLoop);
   } else {
-    if (Math.abs(scrollVelocity) > 0.1) requestAnimationFrame(scrollLoop);
-    else { scrollVelocity = 0; window._vibScrolling = false; }
+    scrollVelocity = 0;
+    window._vibScrolling = false;
   }
 });
 
 function smoothScrollBy(amount) {
+  // If no specific section selected, try to find the one under cursor or active
+  if (currentScrollIndex === -1) {
+    const active = document.activeElement;
+    const hover = document.querySelector(':hover');
+    const best = findBestScrollable(hover || active);
+    
+    if (best !== window) {
+      // Temporary target this element for this scroll session if not already in list
+      const idx = scrollableElements.indexOf(best);
+      if (idx !== -1) currentScrollIndex = idx;
+    }
+  }
+
+  // Sync window target on first scroll
+  if (currentScrollIndex === -1 && !window._vibScrolling) {
+    targetScrollY = window.scrollY;
+    currentScrollY = window.scrollY;
+  }
+
   scrollVelocity += (amount > 0 ? SCROLL_ACCEL : -SCROLL_ACCEL);
-  if (Math.abs(scrollVelocity) > 200) scrollVelocity = Math.sign(scrollVelocity) * 200;
-  if (!window._vibScrolling) { window._vibScrolling = true; requestAnimationFrame(scrollLoop); }
+  if (Math.abs(scrollVelocity) > 180) scrollVelocity = Math.sign(scrollVelocity) * 180;
+  
+  if (!window._vibScrolling) {
+    window._vibScrolling = true;
+    requestAnimationFrame(scrollLoop);
+  }
 }
 
 // Input Detection
@@ -123,7 +190,12 @@ const openVibBar = safeRun(() => {
   if (isVibBarOpen || !vibEnabled || window !== window.top) return;
   isVibBarOpen = true;
   const viewport = { top: 0, bottom: window.innerHeight };
-  pageElements = Array.from(document.querySelectorAll('a, button, input, textarea, [role="button"], [role="link"], [role="textbox"], [contenteditable="true"]'))
+  
+  const selector = deepIndexing 
+    ? 'a, button, input, textarea, [role="button"], [role="link"], [role="textbox"], [contenteditable="true"], div[onclick], span[onclick], nav, section, article'
+    : 'a, button, input, textarea, [role="button"], [role="link"], [role="textbox"], [contenteditable="true"]';
+
+  pageElements = Array.from(document.querySelectorAll(selector))
     .map(el => {
       const rect = el.getBoundingClientRect();
       if (!(rect.width > 0 && rect.height > 0 && rect.top < viewport.bottom && rect.bottom > viewport.top)) return null;

@@ -40,6 +40,11 @@
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "options_page": "options.html",
   "background": {
     "scripts": ["background.js"]
   },
@@ -49,7 +54,8 @@
       "js": ["content.js"],
       "css": ["styles.css"],
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": true,
+      "match_about_blank": true
     }
   ],
   "browser_specific_settings": {

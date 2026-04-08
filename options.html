@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vib Settings</title>
+  <style>
+    :root {
+      --vib-bg: #0a0a0a;
+      --vib-accent: #00ff88;
+      --vib-border: rgba(255, 255, 255, 0.1);
+      --vib-text: #ffffff;
+      --vib-text-dim: #888;
+    }
+    body {
+      background: var(--vib-bg);
+      color: var(--vib-text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      margin: 0;
+      padding: 60px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      letter-spacing: -1px;
+    }
+    .section {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--vib-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .setting-item:last-child { margin-bottom: 0; }
+    .setting-info h3 { margin: 0; font-size: 16px; font-weight: 500; }
+    .setting-info p { margin: 4px 0 0; font-size: 13px; color: var(--vib-text-dim); }
+    
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #333;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--vib-accent); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    .save-status {
+      font-size: 13px;
+      color: var(--vib-accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+      margin-top: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Vib Settings</h1>
+    
+    <div class="section">
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Universal Scrolling</h3>
+          <p>Enable smooth momentum scrolling on all websites and elements.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="scrollEnabled" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Vib Home (New Tab)</h3>
+          <p>Use the minimalist glassmorphic search bar for new tabs.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="newTabEnabled" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Auto-Skip YouTube Ads</h3>
+          <p>Automatically click skip buttons on video platforms.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="autoSkipEnabled" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Deep Indexing</h3>
+          <p>Index more elements for Universal Search (may affect performance).</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="deepIndexing">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div id="status" class="save-status">Settings saved successfully.</div>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>
