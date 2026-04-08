@@ -1,12 +1,8 @@
-// Vib: Minimalist & Compatible Navigation Intelligence
+// Vib: Minimalist & Compatible Navigation Intelligence (Shadow DOM Edition)
 let vibEnabled = true;
 let targetScrollY = window.scrollY;
 let currentScrollY = window.scrollY;
 let scrollVelocity = 0;
-const SCROLL_ACCEL = 35;
-const SCROLL_FRICTION = 0.75;
-
-// Scroll Section Navigation
 let scrollableElements = [];
 let currentScrollIndex = -1;
 
@@ -16,13 +12,103 @@ let vibResults = [];
 let selectedResIndex = 0;
 let vibInput = null;
 let pageElements = [];
+let vibShadowRoot = null;
 
-// Icons
+const VIB_STYLES = `
+  :host {
+    --vib-accent: #00ff88;
+    --vib-bg: rgba(15, 15, 15, 0.85);
+    --vib-border: rgba(255, 255, 255, 0.1);
+  }
+  .vib-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 2147483647;
+    font-family: 'Inter', -apple-system, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+  }
+  .vib-bar-container {
+    margin-top: 15vh;
+    width: 550px;
+    max-width: 90vw;
+    background: var(--vib-bg);
+    backdrop-filter: blur(30px) saturate(160%);
+    border: 1px solid var(--vib-border);
+    border-radius: 20px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    padding: 8px;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .vib-bar-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    padding: 16px 20px;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .vib-bar-results {
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 5px;
+  }
+  .vib-res-item {
+    padding: 12px 18px;
+    border-radius: 12px;
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+    transition: 0.2s;
+    cursor: pointer;
+  }
+  .vib-res-item.selected {
+    background: rgba(255,255,255,0.08);
+    color: var(--vib-accent);
+  }
+  .vib-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+  .selected .vib-icon { opacity: 1; filter: drop-shadow(0 0 5px var(--vib-accent)); }
+  .type-tag { margin-left: auto; font-size: 10px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Guide Panel */
+  .vib-guide-panel {
+    background: var(--vib-bg);
+    backdrop-filter: blur(40px);
+    border: 1px solid var(--vib-border);
+    border-radius: 24px;
+    padding: 35px;
+    width: 550px;
+    color: #fff;
+    margin-top: 10vh;
+  }
+  .key {
+    background: rgba(0,255,136,0.1);
+    color: var(--vib-accent);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 12px;
+    border: 1px solid rgba(0,255,136,0.2);
+  }
+  .guide-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+`;
+
 const ICONS = {
   link: `<svg class="vib-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`,
   cmd: `<svg class="vib-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>`,
-  tab: `<svg class="vib-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg>`,
-  video: `<svg class="vib-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`,
   skip: `<svg class="vib-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>`
 };
 
@@ -39,340 +125,191 @@ function updateSettings(result) {
 }
 
 chrome.storage.local.get(['vibEnabled', 'scrollEnabled', 'autoSkipEnabled', 'deepIndexing'], updateSettings);
-
 chrome.storage.onChanged.addListener((changes) => {
   const newValues = {};
-  for (let [key, { newValue }] of Object.entries(changes)) {
-    newValues[key] = newValue;
-  }
+  for (let [key, { newValue }] of Object.entries(changes)) newValues[key] = newValue;
   updateSettings(newValues);
 });
 
 chrome.runtime.onMessage.addListener((request) => { 
-  if (request.action === 'stateChanged') vibEnabled = request.enabled;
   if (request.action === 'openVibBar') openVibBar();
 });
 
-// Run Auto-Skip on load
-window.addEventListener('load', () => { 
-  if (autoSkipEnabled && window.location.hostname.includes('youtube.com')) trySkipAd(); 
-});
-
 function safeRun(fn) {
-  return function(...args) { try { return fn.apply(this, args); } catch (e) { console.error('Vib Error Protected:', e); } };
+  return function(...args) { try { return fn.apply(this, args); } catch (e) { console.error('Vib Error:', e); } };
 }
 
-// Universal Scrolling Engine (High-Precision Momentum)
-const SCROLL_ACCEL = 40;
-const SCROLL_FRICTION = 0.82;
-let scrollVelocity = 0;
-let currentScrollTarget = null;
-let targetScrollY = 0;
-let currentScrollY = 0;
-
-function findBestScrollable(el) {
-  if (!el || el === document || el === document.body || el === document.documentElement) return window;
-  
-  const style = window.getComputedStyle(el);
-  const overflow = style.overflowY;
-  const isScrollable = (overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay') && el.scrollHeight > el.clientHeight + 5;
-  
-  if (isScrollable) return el;
-  return findBestScrollable(el.parentElement);
+// Rebuild UI with Shadow DOM
+function createVibHost() {
+  const host = document.createElement('div');
+  host.id = 'vib-shadow-host';
+  document.documentElement.appendChild(host);
+  const shadow = host.attachShadow({ mode: 'open' });
+  const style = document.createElement('style');
+  style.textContent = VIB_STYLES;
+  shadow.appendChild(style);
+  return shadow;
 }
 
-const scrollLoop = safeRun(() => {
-  if (!vibEnabled || !scrollEnabled) return;
-  
-  if (Math.abs(scrollVelocity) > 0.1) {
-    // Determine target (Window or Element)
-    let target = currentScrollIndex === -1 ? window : scrollableElements[currentScrollIndex];
-    if (!target) target = window;
-
-    if (target === window) {
-      targetScrollY += scrollVelocity;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      targetScrollY = Math.max(0, Math.min(targetScrollY, maxScroll));
-      
-      const diff = targetScrollY - currentScrollY;
-      if (Math.abs(diff) > 0.1) {
-        currentScrollY += diff * 0.35;
-        window.scrollTo(window.scrollX, currentScrollY);
-      }
-    } else {
-      target.scrollTop += scrollVelocity;
-    }
-    
-    scrollVelocity *= SCROLL_FRICTION;
-    requestAnimationFrame(scrollLoop);
-  } else {
-    scrollVelocity = 0;
-    window._vibScrolling = false;
-  }
-});
-
-function smoothScrollBy(amount) {
-  // If no specific section selected, try to find the one under cursor or active
-  if (currentScrollIndex === -1) {
-    const active = document.activeElement;
-    const hover = document.querySelector(':hover');
-    const best = findBestScrollable(hover || active);
-    
-    if (best !== window) {
-      // Temporary target this element for this scroll session if not already in list
-      const idx = scrollableElements.indexOf(best);
-      if (idx !== -1) currentScrollIndex = idx;
-    }
-  }
-
-  // Sync window target on first scroll
-  if (currentScrollIndex === -1 && !window._vibScrolling) {
-    targetScrollY = window.scrollY;
-    currentScrollY = window.scrollY;
-  }
-
-  scrollVelocity += (amount > 0 ? SCROLL_ACCEL : -SCROLL_ACCEL);
-  if (Math.abs(scrollVelocity) > 180) scrollVelocity = Math.sign(scrollVelocity) * 180;
-  
-  if (!window._vibScrolling) {
-    window._vibScrolling = true;
-    requestAnimationFrame(scrollLoop);
-  }
-}
-
-// Input Detection
-function isEditable(el) {
-  if (!el) return false;
-  const tag = el.tagName.toLowerCase();
-  const role = el.getAttribute('role');
-  const isInput = (tag === 'input' && !['button', 'checkbox', 'radio', 'submit'].includes((el.type || '').toLowerCase())) || tag === 'textarea';
-  const isContentEditable = el.isContentEditable || el.getAttribute('contenteditable') === 'true' || role === 'textbox' || role === 'combobox';
-  return isInput || isContentEditable;
-}
-
-// YouTube Auto-Skip Pro - Enhanced for Modern YouTube (2024-2026)
-const trySkipAd = safeRun(() => {
-  if (!window.location.hostname.includes('youtube.com')) return false;
-
-  const selectors = [
-    '.ytp-ad-skip-button-modern',
-    '.ytp-ad-skip-button',
-    '.ytp-skip-ad-button',
-    '.ytp-ad-skip-button-container',
-    '.ytp-ad-skip-button-slot',
-    'button[aria-label*="Skip"]',
-    '.ytp-ad-overlay-close-button'
-  ];
-
-  for (const s of selectors) {
-    const btn = document.querySelector(s);
-    if (btn && (btn.offsetParent !== null || btn.offsetWidth > 0)) {
-      btn.click();
-      return true;
-    }
-  }
-
-  // Fallback: Check for buttons containing "Skip" text
-  const allButtons = document.querySelectorAll('button');
-  for (const btn of allButtons) {
-    if (btn.innerText && (btn.innerText.includes('Skip Ad') || btn.innerText.includes('Skip ads'))) {
-      if (btn.offsetParent !== null || btn.offsetWidth > 0) {
-        btn.click();
-        return true;
-      }
-    }
-  }
-  return false;
-});
-
-// Vib Bar
 const openVibBar = safeRun(() => {
   if (isVibBarOpen || !vibEnabled) return;
-  // Don't open in tiny iframes (likely trackers/ads)
-  if (window !== window.top && (window.innerWidth < 100 || window.innerHeight < 100)) return;
-  isVibBarOpen = true;
-  const viewport = { top: 0, bottom: window.innerHeight };
+  if (window !== window.top && (window.innerWidth < 150 || window.innerHeight < 150)) return;
   
-  const selector = deepIndexing 
-    ? 'a, button, input, textarea, [role="button"], [role="link"], [role="textbox"], [contenteditable="true"], div[onclick], span[onclick], nav, section, article'
-    : 'a, button, input, textarea, [role="button"], [role="link"], [role="textbox"], [contenteditable="true"]';
+  isVibBarOpen = true;
+  vibShadowRoot = createVibHost();
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'vib-overlay';
+  overlay.innerHTML = `
+    <div class="vib-bar-container">
+      <input type="text" class="vib-bar-input" placeholder="Search page, commands..." spellcheck="false">
+      <div class="vib-bar-results"></div>
+    </div>
+  `;
+  
+  vibShadowRoot.appendChild(overlay);
+  vibInput = vibShadowRoot.querySelector('.vib-bar-input');
+  vibInput.focus();
 
+  // Indexing
+  const selector = deepIndexing 
+    ? 'a, button, input, textarea, [role="button"], [role="link"], [role="textbox"], [contenteditable="true"], div[onclick]'
+    : 'a, button, input, textarea, [role="button"], [role="link"]';
+    
   pageElements = Array.from(document.querySelectorAll(selector))
     .map(el => {
       const rect = el.getBoundingClientRect();
-      if (!(rect.width > 0 && rect.height > 0 && rect.top < viewport.bottom && rect.bottom > viewport.top)) return null;
-      let text = (el.innerText || el.placeholder || el.value || el.ariaLabel || el.getAttribute('data-placeholder') || '').toLowerCase().trim();
-      return text ? { el, text, type: 'page', inViewport: true } : null;
-    })
-    .filter(e => e);
+      if (!(rect.width > 0 && rect.height > 0)) return null;
+      let text = (el.innerText || el.placeholder || el.value || el.ariaLabel || '').toLowerCase().trim();
+      return text ? { el, text, type: 'page' } : null;
+    }).filter(e => e);
 
-  const container = document.createElement('div');
-  container.className = 'vib-overlay vib-bar-overlay';
-  container.innerHTML = `<div class="vib-bar-container"><input type="text" class="vib-bar-input" placeholder="Search visible page, commands, or tabs..." spellcheck="false"><div class="vib-bar-results"></div></div>`;
-  document.body.appendChild(container);
-  vibInput = container.querySelector('.vib-bar-input');
-  vibInput.focus();
-  vibInput.addEventListener('input', handleVibSearch);
-  vibInput.addEventListener('keydown', handleVibKeydown);
+  vibInput.oninput = (e) => handleSearch(e.target.value);
+  vibInput.onkeydown = handleKeydown;
+  overlay.onclick = (e) => { if (e.target === overlay) closeVibBar(); };
 });
 
-const handleVibSearch = safeRun((e) => {
-  const query = e.target.value.toLowerCase();
+function handleSearch(query) {
+  query = query.toLowerCase();
   const commands = [
     { text: 'new tab', action: 'newTab', type: 'cmd' },
-    { text: 'close tab', action: 'closeTab', type: 'cmd' },
-    { text: 'history', action: 'openHistory', type: 'cmd' },
     { text: 'settings', action: 'openSettings', type: 'cmd' },
     { text: 'skip ad', action: 'skipAd', type: 'skip' }
   ].filter(c => !query || c.text.includes(query));
 
   const matches = pageElements.filter(e => e.text.includes(query)).slice(0, 10);
-  updateResults([...commands, ...matches]);
-});
+  renderResults([...commands, ...matches]);
+}
 
-function updateResults(results) {
+function renderResults(results) {
   vibResults = results;
   selectedResIndex = 0;
-  const list = document.querySelector('.vib-bar-results');
-  if (!list) return;
-  list.textContent = '';
+  const list = vibShadowRoot.querySelector('.vib-bar-results');
+  list.innerHTML = '';
+  
   results.forEach((res, i) => {
     const item = document.createElement('div');
     item.className = `vib-res-item ${i === 0 ? 'selected' : ''}`;
-    
-    const iconSpan = document.createElement('span');
-    let iconHTML = ICONS.link;
-    if (res.type && ICONS[res.type]) iconHTML = ICONS[res.type];
-    else if (res.text.includes('youtube') || res.text.includes('video')) iconHTML = ICONS.video;
-    
-    const parser = new DOMParser();
-    const iconDoc = parser.parseFromString(iconHTML, 'image/svg+xml');
-    iconSpan.appendChild(iconDoc.documentElement);
-    item.appendChild(iconSpan);
-
-    const textSpan = document.createElement('span');
-    textSpan.textContent = res.text;
-    item.appendChild(textSpan);
-
-    const typeSpan = document.createElement('span');
-    typeSpan.className = 'type-tag';
-    typeSpan.textContent = res.type || 'page';
-    item.appendChild(typeSpan);
-
+    item.innerHTML = `
+      ${ICONS[res.type] || ICONS.link}
+      <span>${res.text}</span>
+      <span class="type-tag">${res.type || 'link'}</span>
+    `;
+    item.onclick = () => executeResult(res);
     list.appendChild(item);
   });
-  renderSelection();
 }
 
-function handleVibKeydown(e) {
-  if (e.key === 'ArrowDown') { selectedResIndex = (selectedResIndex + 1) % vibResults.length; renderSelection(); e.preventDefault(); }
-  else if (e.key === 'ArrowUp') { selectedResIndex = (selectedResIndex - 1 + vibResults.length) % vibResults.length; renderSelection(); e.preventDefault(); }
+function handleKeydown(e) {
+  if (e.key === 'ArrowDown') { selectedResIndex = (selectedResIndex + 1) % vibResults.length; updateSelection(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { selectedResIndex = (selectedResIndex - 1 + vibResults.length) % vibResults.length; updateSelection(); e.preventDefault(); }
   else if (e.key === 'Enter') { executeResult(vibResults[selectedResIndex]); e.preventDefault(); }
   else if (e.key === 'Escape') closeVibBar();
 }
 
-function renderSelection() {
-  const items = document.querySelectorAll('.vib-res-item');
+function updateSelection() {
+  const items = vibShadowRoot.querySelectorAll('.vib-res-item');
   items.forEach((item, i) => item.classList.toggle('selected', i === selectedResIndex));
-  document.querySelectorAll('.vib-target-glow').forEach(e => e.classList.remove('vib-target-glow'));
-  const res = vibResults[selectedResIndex];
-  if (res && res.el) res.el.classList.add('vib-target-glow');
 }
 
 function executeResult(res) {
   if (!res) return;
   if (res.action === 'skipAd') trySkipAd();
   else if (res.action) chrome.runtime.sendMessage(res);
-  else { res.el.click(); if (isEditable(res.el)) res.el.focus(); }
+  else { res.el.click(); res.el.focus(); }
   closeVibBar();
 }
 
 function closeVibBar() {
   isVibBarOpen = false;
-  const overlay = document.querySelector('.vib-bar-overlay');
-  if (overlay) overlay.remove();
-  document.querySelectorAll('.vib-target-glow').forEach(e => e.classList.remove('vib-target-glow'));
+  const host = document.getElementById('vib-shadow-host');
+  if (host) host.remove();
 }
 
+// Global Key Listener
 window.addEventListener('keydown', (e) => {
   const isSpace = e.key === ' ' || e.code === 'Space';
-  const isTrigger = (e.ctrlKey || e.metaKey) && isSpace;
-  if (isTrigger) { openVibBar(); e.preventDefault(); e.stopPropagation(); return; }
-  
-  if (e.key === 'Escape') {
-    if (isVibBarOpen || document.querySelector('.vib-overlay') || isEditable(document.activeElement)) {
-      if (document.activeElement) document.activeElement.blur();
-      closeVibBar();
-      document.querySelectorAll('.vib-overlay').forEach(o => o.remove());
-      e.preventDefault(); e.stopPropagation();
-    }
+  if ((e.ctrlKey || e.metaKey) && isSpace) {
+    openVibBar();
+    e.preventDefault();
     return;
   }
   
-  if (!vibEnabled || isVibBarOpen || isEditable(document.activeElement)) return;
-
-  const scrollAmt = 35;
-  switch (e.key) {
-    case 'ArrowDown': smoothScrollBy(scrollAmt); e.preventDefault(); break;
-    case 'ArrowUp': smoothScrollBy(-scrollAmt); e.preventDefault(); break;
-    case 'Tab': cycleScrollSection(); e.preventDefault(); break;
-    case '?': showGuide(); break;
-  }
+  if (isVibBarOpen) return; // Bar handles its own keys
+  
+  if (e.key === '?') { showGuide(); return; }
+  
+  // Scrolling
+  if (!vibEnabled || !scrollEnabled || isEditable(document.activeElement)) return;
+  if (e.key === 'ArrowDown') smoothScrollBy(40);
+  if (e.key === 'ArrowUp') smoothScrollBy(-40);
 }, true);
 
-function cycleScrollSection() {
-  const elements = Array.from(document.querySelectorAll('*')).filter(el => {
-    const style = window.getComputedStyle(el);
-    return el.scrollHeight > el.clientHeight + 10 && (style.overflowY === 'auto' || style.overflowY === 'scroll');
-  });
-  scrollableElements = elements;
-  document.querySelectorAll('.vib-scroll-focus').forEach(el => el.classList.remove('vib-scroll-focus'));
-  currentScrollIndex = (currentScrollIndex + 1) >= scrollableElements.length ? -1 : currentScrollIndex + 1;
-  if (currentScrollIndex !== -1) {
-    scrollableElements[currentScrollIndex].classList.add('vib-scroll-focus');
-    scrollableElements[currentScrollIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+function showGuide() {
+  if (isVibBarOpen) return;
+  const shadow = createVibHost();
+  const overlay = document.createElement('div');
+  overlay.className = 'vib-overlay';
+  overlay.innerHTML = `
+    <div class="vib-guide-panel">
+      <h2 style="color:var(--vib-accent); margin-bottom:25px;">Vib Commands</h2>
+      <div class="guide-row"><span>Search Bar</span> <span class="key">Ctrl + Space</span></div>
+      <div class="guide-row"><span>Smooth Scroll</span> <span class="key">↓ / ↑</span></div>
+      <div class="guide-row"><span>Toggle Guide</span> <span class="key">?</span></div>
+      <div class="guide-row"><span>New Tab</span> <span class="key">Ctrl + T</span></div>
+      <div class="guide-row"><span>Close Tab</span> <span class="key">Ctrl + W</span></div>
+      <div style="margin-top:20px; font-size:11px; opacity:0.4; text-align:center;">Vib Isolated Shadow UI v1.0</div>
+    </div>
+  `;
+  shadow.appendChild(overlay);
+  overlay.onclick = () => document.getElementById('vib-shadow-host').remove();
+}
+
+function isEditable(el) {
+  if (!el) return false;
+  const tag = el.tagName.toLowerCase();
+  return tag === 'input' || tag === 'textarea' || el.isContentEditable;
+}
+
+// Momentum Scrolling
+const SCROLL_ACCEL = 40;
+const SCROLL_FRICTION = 0.85;
+
+function smoothScrollBy(amount) {
+  scrollVelocity += amount;
+  if (Math.abs(scrollVelocity) > 150) scrollVelocity = Math.sign(scrollVelocity) * 150;
+  if (!window._vibLoop) {
+    window._vibLoop = true;
+    const loop = () => {
+      if (Math.abs(scrollVelocity) > 0.5) {
+        window.scrollBy(0, scrollVelocity);
+        scrollVelocity *= SCROLL_FRICTION;
+        requestAnimationFrame(loop);
+      } else {
+        scrollVelocity = 0;
+        window._vibLoop = false;
+      }
+    };
+    requestAnimationFrame(loop);
   }
 }
-
-function showGuide() {
-  if (window !== window.top) return;
-  const overlay = document.createElement('div');
-  overlay.className = 'vib-overlay vib-guide-overlay';
-  overlay.innerHTML = `
-    <div class="vib-guide-panel" style="animation: vib-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:25px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--vib-accent)" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        <h2 style="margin:0; font-size:22px;">Vib Master Guide</h2>
-      </div>
-      
-      <div style="margin-bottom:25px;">
-        <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:1px; opacity:0.4; margin-bottom:15px;">Core Navigation</h3>
-        <div class="vib-guide-grid" style="grid-template-columns: 1fr 1fr; gap: 12px 40px;">
-          <div class="vib-guide-item"><span>Universal Search</span> <span class="key">Ctrl + Space</span></div>
-          <div class="vib-guide-item"><span>Momentum Scroll</span> <span class="key">↓ / ↑</span></div>
-          <div class="vib-guide-item"><span>Cycle Sections</span> <span class="key">Tab</span></div>
-          <div class="vib-guide-item"><span>Quick Exit</span> <span class="key">Esc</span></div>
-        </div>
-      </div>
-
-      <div>
-        <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:1px; opacity:0.4; margin-bottom:15px;">Browser Power</h3>
-        <div class="vib-guide-grid" style="grid-template-columns: 1fr 1fr; gap: 12px 40px;">
-          <div class="vib-guide-item"><span>Vib Home</span> <span class="key">Ctrl + T</span></div>
-          <div class="vib-guide-item"><span>Close Tab</span> <span class="key">Ctrl + W</span></div>
-          <div class="vib-guide-item"><span>Restore Tab</span> <span class="key">C + S + T</span></div>
-          <div class="vib-guide-item"><span>Settings</span> <span class="key">Ctrl + ,</span></div>
-        </div>
-      </div>
-
-      <div style="margin-top:30px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:11px; opacity:0.3;">v1.0.0 Stable</span>
-        <span style="font-size:11px; color:var(--vib-accent); opacity:0.8;">Click anywhere to dismiss</span>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-}
-
-const adObserver = new MutationObserver(() => trySkipAd());
-adObserver.observe(document.body, { childList: true, subtree: true });
