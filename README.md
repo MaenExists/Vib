@@ -9,9 +9,9 @@
 
 ## ✨ Key Features
 
-- **Glassmorphic Command Bar (`Ctrl + Space`):** A beautiful, translucent search bar that only shows what's in your current view.
+- **Glassmorphic Home Page (New Tab):** A beautiful, high-performance replacement for the default new tab page, keeping the Vib search experience at the center of your workflow.
 - **Universal Smooth Scroll (Arrow Keys):** Momentum-based, high-precision scrolling that gives you absolute control.
-- **Auto-Skip Intelligence:** Automatically detects and skips YouTube ads the moment the button appears.
+- **Enhanced Auto-Skip Pro:** Now even more reliable with multi-selector support and "Skip" text detection for modern YouTube.
 - **Smart Escape Hatch (`Esc`):** Intelligently unfocuses inputs and closes overlays without breaking website modals.
 - **Multi-Section Navigation (`Tab`):** Seamlessly cycle focus between sidebars, feeds, and main content areas.
 - **Zero Conflict:** Respects all native website shortcuts and default browser commands.

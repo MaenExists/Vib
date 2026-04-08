@@ -28,7 +28,13 @@ const ICONS = {
 
 // State Manager
 chrome.storage.local.get(['vibEnabled'], (result) => { vibEnabled = result.vibEnabled !== false; });
-chrome.runtime.onMessage.addListener((request) => { if (request.action === 'stateChanged') vibEnabled = request.enabled; });
+chrome.runtime.onMessage.addListener((request) => { 
+  if (request.action === 'stateChanged') vibEnabled = request.enabled;
+  if (request.action === 'openVibBar') openVibBar();
+});
+
+// Run Auto-Skip on load
+window.addEventListener('load', () => { if (window.location.hostname.includes('youtube.com')) trySkipAd(); });
 
 function safeRun(fn) {
   return function(...args) { try { return fn.apply(this, args); } catch (e) { console.error('Vib Error Protected:', e); } };
@@ -77,12 +83,37 @@ function isEditable(el) {
   return isInput || isContentEditable;
 }
 
-// YouTube Auto-Skip Pro
+// YouTube Auto-Skip Pro - Enhanced for Modern YouTube (2024-2026)
 const trySkipAd = safeRun(() => {
-  const selectors = ['.ytp-ad-skip-button-modern', '.ytp-ad-skip-button', '.ytp-skip-ad-button', 'button[aria-label*="Skip"]'];
+  if (!window.location.hostname.includes('youtube.com')) return false;
+
+  const selectors = [
+    '.ytp-ad-skip-button-modern',
+    '.ytp-ad-skip-button',
+    '.ytp-skip-ad-button',
+    '.ytp-ad-skip-button-container',
+    '.ytp-ad-skip-button-slot',
+    'button[aria-label*="Skip"]',
+    '.ytp-ad-overlay-close-button'
+  ];
+
   for (const s of selectors) {
     const btn = document.querySelector(s);
-    if (btn && btn.offsetParent !== null) { btn.click(); return true; }
+    if (btn && (btn.offsetParent !== null || btn.offsetWidth > 0)) {
+      btn.click();
+      return true;
+    }
+  }
+
+  // Fallback: Check for buttons containing "Skip" text
+  const allButtons = document.querySelectorAll('button');
+  for (const btn of allButtons) {
+    if (btn.innerText && (btn.innerText.includes('Skip Ad') || btn.innerText.includes('Skip ads'))) {
+      if (btn.offsetParent !== null || btn.offsetWidth > 0) {
+        btn.click();
+        return true;
+      }
+    }
   }
   return false;
 });

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab - Vib</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: radial-gradient(circle at top right, #1a1a2e, #16213e, #0f3460);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+    }
+    .vib-hero {
+      text-align: center;
+      z-index: 1;
+      width: 100%;
+      max-width: 600px;
+    }
+    .vib-hero h1 {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 300;
+      font-size: 3rem;
+      margin-bottom: 2rem;
+      letter-spacing: -1px;
+    }
+    .vib-newtab-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 18px 24px;
+      color: white;
+      font-size: 1.2rem;
+      outline: none;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+    .vib-newtab-input:focus {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+    .shortcuts {
+      margin-top: 3rem;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .shortcut {
+      color: rgba(255, 255, 255, 0.5);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .shortcut:hover {
+      color: rgba(255, 255, 255, 0.9);
+    }
+  </style>
+</head>
+<body>
+  <div class="vib-hero">
+    <h1>Vib</h1>
+    <input type="text" class="vib-newtab-input" placeholder="Where to?" autofocus spellcheck="false">
+    <div class="shortcuts">
+      <a href="https://github.com" class="shortcut">GitHub</a>
+      <a href="https://youtube.com" class="shortcut">YouTube</a>
+      <a href="https://twitter.com" class="shortcut">Twitter</a>
+      <a href="https://google.com" class="shortcut">Google</a>
+    </div>
+  </div>
+  <script src="newtab.js"></script>
+</body>
+</html>

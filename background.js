@@ -10,6 +10,19 @@ chrome.storage.local.get(['vibEnabled'], (result) => {
   }
 });
 
+chrome.commands.onCommand.addListener((command) => {
+  if (command === 'open-vib-bar') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'openVibBar' }).catch(() => {
+          // Fallback if content script not loaded (e.g. on chrome:// or about: pages)
+          console.log('Vib: Cannot open bar on this page.');
+        });
+      }
+    });
+  }
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   try {
     switch (request.action) {
