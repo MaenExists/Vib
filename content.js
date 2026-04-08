@@ -339,19 +339,36 @@ function showGuide() {
   const overlay = document.createElement('div');
   overlay.className = 'vib-overlay vib-guide-overlay';
   overlay.innerHTML = `
-    <div class="vib-guide-panel">
-      <h2>Vib Guide</h2>
-      <div class="vib-guide-grid" style="grid-template-columns: 1fr 1fr; gap: 12px 30px;">
-        <div class="vib-guide-item"><span>Universal Search</span> <span class="key">Ctrl + Space</span></div>
-        <div class="vib-guide-item"><span>Smooth Scroll</span> <span class="key">↓ / ↑</span></div>
-        <div class="vib-guide-item"><span>Cycle Focus</span> <span class="key">Tab</span></div>
-        <div class="vib-guide-item"><span>Universal Exit</span> <span class="key">Esc</span></div>
-        <div class="vib-guide-item"><span>Vib Home</span> <span class="key">Ctrl + T</span></div>
-        <div class="vib-guide-item"><span>Close Tab</span> <span class="key">Ctrl + W</span></div>
-        <div class="vib-guide-item"><span>Reopen Tab</span> <span class="key">C-S-T</span></div>
-        <div class="vib-guide-item"><span>History</span> <span class="key">Ctrl + H</span></div>
+    <div class="vib-guide-panel" style="animation: vib-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:25px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--vib-accent)" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <h2 style="margin:0; font-size:22px;">Vib Master Guide</h2>
       </div>
-      <p style="margin-top:20px; font-size:11px; opacity:0.5; text-align:center;">Vib is active on all pages, including your new tab.</p>
+      
+      <div style="margin-bottom:25px;">
+        <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:1px; opacity:0.4; margin-bottom:15px;">Core Navigation</h3>
+        <div class="vib-guide-grid" style="grid-template-columns: 1fr 1fr; gap: 12px 40px;">
+          <div class="vib-guide-item"><span>Universal Search</span> <span class="key">Ctrl + Space</span></div>
+          <div class="vib-guide-item"><span>Momentum Scroll</span> <span class="key">↓ / ↑</span></div>
+          <div class="vib-guide-item"><span>Cycle Sections</span> <span class="key">Tab</span></div>
+          <div class="vib-guide-item"><span>Quick Exit</span> <span class="key">Esc</span></div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-size:12px; text-transform:uppercase; letter-spacing:1px; opacity:0.4; margin-bottom:15px;">Browser Power</h3>
+        <div class="vib-guide-grid" style="grid-template-columns: 1fr 1fr; gap: 12px 40px;">
+          <div class="vib-guide-item"><span>Vib Home</span> <span class="key">Ctrl + T</span></div>
+          <div class="vib-guide-item"><span>Close Tab</span> <span class="key">Ctrl + W</span></div>
+          <div class="vib-guide-item"><span>Restore Tab</span> <span class="key">C + S + T</span></div>
+          <div class="vib-guide-item"><span>Settings</span> <span class="key">Ctrl + ,</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:30px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:11px; opacity:0.3;">v1.0.0 Stable</span>
+        <span style="font-size:11px; color:var(--vib-accent); opacity:0.8;">Click anywhere to dismiss</span>
+      </div>
     </div>`;
   document.body.appendChild(overlay);
   overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };

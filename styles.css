@@ -16,6 +16,13 @@
   pointer-events: none;
   z-index: 2147483647;
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.vib-overlay * {
+  pointer-events: auto;
 }
 
 /* Glassmorphism Vib Bar */
@@ -161,12 +168,15 @@
 }
 
 .vib-guide-item .key {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 255, 136, 0.1);
   color: var(--vib-accent);
   padding: 4px 10px;
   border-radius: 8px;
-  font-weight: 600;
-  font-family: monospace;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
 }
 
 /* Active Scroll Section Highlight */
