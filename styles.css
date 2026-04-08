@@ -121,36 +121,43 @@
 }
 
 .vib-guide-panel {
-  background: rgba(20, 20, 20, 0.85);
-  backdrop-filter: blur(35px);
+  background: rgba(10, 10, 10, 0.9);
+  backdrop-filter: blur(40px);
   border: 1px solid var(--vib-border);
-  border-radius: 24px;
-  padding: 45px;
-  width: 580px;
+  border-radius: 20px;
+  padding: 30px;
+  width: 500px;
   max-width: 90vw;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
   color: #fff;
+  animation: vib-fade-in 0.3s ease-out;
+}
+
+@keyframes vib-fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .vib-guide-panel h2 {
   color: var(--vib-accent);
   margin-top: 0;
-  font-size: 30px;
+  font-size: 20px;
   font-weight: 600;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
 }
 
 .vib-guide-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 12px;
 }
 
 .vib-guide-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: 13px;
+  opacity: 0.9;
 }
 
 .vib-guide-item .key {

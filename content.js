@@ -263,7 +263,21 @@ function showGuide() {
   if (window !== window.top) return;
   const overlay = document.createElement('div');
   overlay.className = 'vib-overlay vib-guide-overlay';
-  overlay.innerHTML = `<div class="vib-guide-panel"><h2>Vib Master Guide</h2><div class="vib-guide-grid"><div class="vib-guide-item"><span>Universal Search</span> <span class="key">Ctrl + Space</span></div><div class="vib-guide-item"><span>Smooth Scroll</span> <span class="key">↓ / ↑</span></div><div class="vib-guide-item"><span>Cycle Section</span> <span class="key">Tab</span></div><div class="vib-guide-item"><span>Universal Exit</span> <span class="key">Esc</span></div></div><p style="margin-top:20px; font-size:12px; opacity:0.6;">Use default browser shortcuts for tabs & history.</p></div>`;
+  overlay.innerHTML = `
+    <div class="vib-guide-panel">
+      <h2>Vib Guide</h2>
+      <div class="vib-guide-grid" style="grid-template-columns: 1fr 1fr; gap: 12px 30px;">
+        <div class="vib-guide-item"><span>Universal Search</span> <span class="key">Ctrl + Space</span></div>
+        <div class="vib-guide-item"><span>Smooth Scroll</span> <span class="key">↓ / ↑</span></div>
+        <div class="vib-guide-item"><span>Cycle Focus</span> <span class="key">Tab</span></div>
+        <div class="vib-guide-item"><span>Universal Exit</span> <span class="key">Esc</span></div>
+        <div class="vib-guide-item"><span>Vib Home</span> <span class="key">Ctrl + T</span></div>
+        <div class="vib-guide-item"><span>Close Tab</span> <span class="key">Ctrl + W</span></div>
+        <div class="vib-guide-item"><span>Reopen Tab</span> <span class="key">C-S-T</span></div>
+        <div class="vib-guide-item"><span>History</span> <span class="key">Ctrl + H</span></div>
+      </div>
+      <p style="margin-top:20px; font-size:11px; opacity:0.5; text-align:center;">Vib is active on all pages, including your new tab.</p>
+    </div>`;
   document.body.appendChild(overlay);
   overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 }
